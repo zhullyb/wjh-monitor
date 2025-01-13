@@ -1,4 +1,4 @@
-import { getCurrentTimeStr } from "./utils";
+import { getCurrentTimeStr, isExemptionTime } from "./utils";
 import { ApiService } from "./request";
 
 export default {
@@ -22,7 +22,7 @@ const main = async (env: Env) => {
       throw new Error("res.code !== 1");
     }
   } catch (error) {
-	console.error(error);
+    console.error(error);
     success = false;
   }
   const timeEnd = new Date();
@@ -33,15 +33,17 @@ const main = async (env: Env) => {
   let onlineStatus = db4.results[0].online_status;
   let notify = false;
 
-  if (onlineStatus) {
-    if (successCount <= 2) {
-      onlineStatus = false;
-      notify = true;
-    }
-  } else {
-    if (successCount >= 3) {
-      onlineStatus = true;
-      notify = true;
+  if (!isExemptionTime()) {
+    if (onlineStatus) {
+      if (successCount <= 2) {
+        onlineStatus = false;
+        notify = true;
+      }
+    } else {
+      if (successCount >= 3) {
+        onlineStatus = true;
+        notify = true;
+      }
     }
   }
 
