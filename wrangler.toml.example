@@ -9,6 +9,22 @@ compatibility_date = "2025-01-09"
 [observability]
 enabled = true
 
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+WJH_ACCOUNT = "202200000000"
+WJH_PASSWORD = ""
+WJH_API = "https://api.example.com/api"
+ZF_PASSWORD = ""
+FEISHU_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/ffffffff-ffff-ffff-ffff-ffffffffffff"
+FEISHU_LOG_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/ffffffff-ffff-ffff-ffff-ffffffffffff"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wjh-monitor-db"
+database_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
 # rather than the end user may result in better performance.
