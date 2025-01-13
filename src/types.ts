@@ -1,5 +1,5 @@
 export interface ResponseType {
-	code: number;
-	data: any;
-	msg: string;
+  code: number;
+  data: any;
+  msg: string;
 }
