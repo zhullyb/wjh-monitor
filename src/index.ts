@@ -55,8 +55,8 @@ const main = async (env: Env) => {
     }
   }
 
-  await env.DB.prepare("INSERT INTO DATA (response_time, success, online_status, notify) VALUES (?, ?, ?, ?)")
-    .bind(timeDiff, success, onlineStatus, notify)
+  await env.DB.prepare("INSERT INTO DATA (response_time, success, online_status, notify, check_item) VALUES (?, ?, ?, ?, ?)")
+    .bind(timeDiff, success, onlineStatus, notify, "wjh_zf")
     .run();
 
   await apiService.logFeishu(
