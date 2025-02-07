@@ -1,5 +1,6 @@
 import { getCurrentTimeStr, isExemptionTime } from "./utils";
 import { ApiService } from "./request";
+import { DBService } from "./db";
 
 export default {
   async fetch(request, env, ctx): Promise<Response> {
@@ -12,12 +13,13 @@ export default {
 } satisfies ExportedHandler<Env>;
 
 const main = async (env: Env) => {
-  const apiService = new ApiService(env);
+  const api = new ApiService(env);
+  const db = new DBService(env);
   let success = true;
   const timeStart = new Date();
   try {
-    const cookie = await apiService.login();
-    const res = await apiService.fetchZF(cookie);
+    const cookie = await api.login();
+    const res = await api.fetchZF(cookie);
     if (res.code !== 1) {
       throw new Error("res.code !== 1");
     }
@@ -28,9 +30,9 @@ const main = async (env: Env) => {
   const timeEnd = new Date();
   const timeDiff = timeEnd.getTime() - timeStart.getTime();
 
-  const db4 = await env.DB.prepare("SELECT * FROM DATA ORDER BY check_time DESC LIMIT 4").bind().run();
+  const db4 = await db.getLatestRecords(4);
   const successCount = db4.results.filter((item) => item.success == true).length + (success ? 1 : 0);
-  let onlineStatus = db4.results[0].online_status;
+  let onlineStatus = db4.results[0].online_status as boolean;
   let notify = false;
 
   if (!isExemptionTime()) {
@@ -49,17 +51,16 @@ const main = async (env: Env) => {
 
   if (notify) {
     if (onlineStatus) {
-      await apiService.notifyFeishu("Server is up!");
+      await api.notifyFeishu("Server is up!");
     } else {
-      await apiService.notifyFeishu("Server is down!");
+      await api.notifyFeishu("Server is down!");
     }
   }
 
-  await env.DB.prepare("INSERT INTO DATA (response_time, success, online_status, notify, check_item) VALUES (?, ?, ?, ?, ?)")
-    .bind(timeDiff, success, onlineStatus, notify, "wjh_zf")
-    .run();
+  await db.insertData(timeDiff, success, onlineStatus, notify, "wjh_zf");
+  await db.deleteOldData();
 
-  await apiService.logFeishu(
+  await api.logFeishu(
     [
       `时间: ${getCurrentTimeStr()}`,
       `请求耗时: ${timeDiff}ms`,
@@ -68,6 +69,4 @@ const main = async (env: Env) => {
       `是否通知飞书: ${notify ? "通知" : "无需通知"}`
     ].join("\n")
   );
-
-  await env.DB.prepare("DELETE FROM DATA WHERE check_time < date('now', '-3 days')").run();
 };
