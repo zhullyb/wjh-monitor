@@ -68,4 +68,6 @@ const main = async (env: Env) => {
       `是否通知飞书: ${notify ? "通知" : "无需通知"}`
     ].join("\n")
   );
+
+  await env.DB.prepare("DELETE FROM DATA WHERE check_time < date('now', '-3 days')").run();
 };
